@@ -61,20 +61,16 @@ def parse_walls(objFile, lower_bound = 1.0):
         obj['bbox'] = {}
         obj['bbox']['min']=v_min
         obj['bbox']['max']=v_max
-        if v_min[1] < lower_bound:
-            return obj
-        return None
+        return obj if v_min[1] < lower_bound else None
+
     walls = []
     with open(objFile, 'r') as file:
         vers = []
-        for line in file.readlines():
+        for line in file:
             if len(line) < 2: continue
             if line[0] == 'g':
                 if (vers is not None) and (len(vers) > 0): walls.append(create_box(vers))
-                if ('Wall' in line):
-                    vers = []
-                else:
-                    vers = None
+                vers = [] if ('Wall' in line) else None
             if (vers is not None) and (line[0] == 'v') and (line[1] == ' '):
                 vals = line[2:]
                 coor =[float(v) for v in vals.split(' ') if len(v)>0]
@@ -177,13 +173,16 @@ class House(object):
         self.all_desired_roomTypes = []
         self.default_roomTp = None
         for roomTp in ALLOWED_TARGET_ROOM_TYPES:
-            if any([any([_equal_room_tp(tp, roomTp) for tp in tps]) for tps in self.all_roomTypes]):
+            if any(
+                any(_equal_room_tp(tp, roomTp) for tp in tps)
+                for tps in self.all_roomTypes
+            ):
                 self.all_desired_roomTypes.append(roomTp)
                 if self.default_roomTp is None: self.default_roomTp = roomTp
         assert self.default_roomTp is not None, 'Cannot Find Any Desired Rooms!'
 
         if DebugMessages == True:
-            print('>> Default Target Room Type Selected = {}'.format(self.default_roomTp))
+            print(f'>> Default Target Room Type Selected = {self.default_roomTp}')
             print('  --> Done! Elapsed = %.2fs' % (time.time()-ts))
 
         if _IgnoreSmallHouse and ((len(self.all_desired_roomTypes) < 2) or ('kitchen' not in self.all_desired_roomTypes)):
@@ -256,7 +255,9 @@ class House(object):
         self.inroomDist = None
         if SetTarget:
             if DebugMessages == True:
-                print('Generate Target connectivity Map (Default <{}>) ...'.format(self.default_roomTp))
+                print(
+                    f'Generate Target connectivity Map (Default <{self.default_roomTp}>) ...'
+                )
             self.setTargetRoom(self.default_roomTp, _setEagleMap=True)
         if DebugMessages == True:
             print('  --> Done! Elapsed = %.2fs' % (time.time()-ts))
@@ -281,10 +282,9 @@ class House(object):
             _x1, _, _y1 = room['bbox']['min']
             _x2, _, _y2 = room['bbox']['max']
             x1, y1, x2, y2 = self.rescale(_x1, _y1, _x2, _y2)
-            for x in range(x1, x2+1):
-                for y in range(y1, y2+1):
-                    if self.moveMap[x, y] > 0:
-                        rtMap[x, y] = rtMap[x, y] | msk
+            for x, y in itertools.product(range(x1, x2+1), range(y1, y2+1)):
+                if self.moveMap[x, y] > 0:
+                    rtMap[x, y] = rtMap[x, y] | msk
         for x in range(self.n_row+1):
             for y in range(self.n_row+1):
                 if (self.moveMap[x, y] > 0) and (rtMap[x, y] == 0):
@@ -331,12 +331,13 @@ class House(object):
         if n == 0: return []  # no components found!
         ret_comps = comps
         if return_open:
-            if len(open_comps) == 0:
-                print('WARNING!!!! [House] <find components in Target Room [%s]> No Open Components Found!!!! Return Largest Instead!!!!' % self.targetRoomTp)
-                return_largest = True
+            if open_comps:
+                ret_comps = [comps[i] for i in sorted(list(open_comps))]
             else:
-                ids = sorted(list(open_comps))
-                ret_comps = [comps[i] for i in ids]
+                print(
+                    f'WARNING!!!! [House] <find components in Target Room [{self.targetRoomTp}]> No Open Components Found!!!! Return Largest Instead!!!!'
+                )
+                return_largest = True
         if return_largest:
             max_c = np.argmax([len(c) for c in ret_comps])
             ret_comps = ret_comps[max_c]

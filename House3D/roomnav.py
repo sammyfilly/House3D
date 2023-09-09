@@ -166,10 +166,10 @@ class RoomNavTask(gym.Env):
         # config success measure
         assert success_measure in ['stay', 'see']
         self.success_measure = success_measure
-        print('[RoomNavTask] >> Success Measure = <{}>'.format(success_measure))
+        print(f'[RoomNavTask] >> Success Measure = <{success_measure}>')
         self.success_stay_cnt = 0
         if success_measure == 'see':
-            self.room_target_object = dict()
+            self.room_target_object = {}
             self._load_target_object_data(self.env.config['roomTargetFile'])
 
     def _load_target_object_data(self, roomTargetFile):
@@ -190,7 +190,9 @@ class RoomNavTask(gym.Env):
         if target is None:
             target = random.choice(self.house.all_desired_roomTypes)
         else:
-            assert target in self.house.all_desired_roomTypes, '[RoomNavTask] desired target <{}> does not exist in the current house!'.format(target)
+            assert (
+                target in self.house.all_desired_roomTypes
+            ), f'[RoomNavTask] desired target <{target}> does not exist in the current house!'
         if self.house.setTargetRoom(target):  # target room changed!!!
             _id = self.house._id
             if self.house.targetRoomTp not in self._availCoorsDict[_id]:
@@ -247,10 +249,9 @@ class RoomNavTask(gym.Env):
     def _apply_action(self, action):
         if self.discrete_action:
             return discrete_actions[action]
-        else:
-            rot = action[1][0] - action[1][1]
-            act = action[0]
-            return (act[0] - act[1]), (act[2] - act[3]), rot
+        rot = action[1][0] - action[1][1]
+        act = action[0]
+        return (act[0] - act[1]), (act[2] - act[3]), rot
 
     def _is_success(self, raw_dist):
         if raw_dist > 0:
@@ -395,7 +396,7 @@ class RoomNavTask(gym.Env):
             self.availCoors = [c for c in self.house.connectedCoors
                                if self.house.connMap[c[0], c[1]] <= allowed_dist]
         n_house = self.env.num_house
-        self._availCoorsDict = [dict() for i in range(n_house)]
+        self._availCoorsDict = [{} for _ in range(n_house)]
         self._availCoorsDict[self.house._id][self.house.targetRoomTp] = self.availCoors
 
     """

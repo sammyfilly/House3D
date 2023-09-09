@@ -21,13 +21,11 @@ def worker(idx, house_id, device):
     env = Environment(api, house_id, cfg)
     N = 15000
     start = time.time()
-    cnt = 0
     env.reset()
-    for t in range(N):
-        cnt += 1
+    for cnt, _ in enumerate(range(N), start=1):
         env.move_forward(random.random() * 3, random.random() * 3)
-        mat = env.render()
         if (cnt % 50 == 0):
+            mat = env.render()
             env.reset()
     end = time.time()
     print("Worker {}, speed {:.3f} fps".format(idx, N / (end - start)))

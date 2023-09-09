@@ -47,31 +47,30 @@ class RestrictedHouse(House):
         result = []
         for roomTp in ROOM_TYPES:
             rooms = self._getRooms(roomTp)
-            for room in rooms:
-                result.append(self._getRoomBounds(room))
+            result.extend(self._getRoomBounds(room) for room in rooms)
         return result
 
 
 def create_house(houseID, config, robotRadius=ROBOT_RAD):
-    print('Loading house {}'.format(houseID))
+    print(f'Loading house {houseID}')
     objFile = os.path.join(config['prefix'], houseID, 'house.obj')
     jsonFile = os.path.join(config['prefix'], houseID, 'house.json')
-    assert (
-        os.path.isfile(objFile) and os.path.isfile(jsonFile)
-    ), '[Environment] house objects not found! objFile=<{}>'.format(objFile)
+    assert os.path.isfile(objFile) and os.path.isfile(
+        jsonFile
+    ), f'[Environment] house objects not found! objFile=<{objFile}>'
     cachefile = os.path.join(config['prefix'], houseID, 'cachedmap1k.pkl')
     if not os.path.isfile(cachefile):
         cachefile = None
 
-    house = RestrictedHouse(
+    return RestrictedHouse(
         JsonFile=jsonFile,
         ObjFile=objFile,
         MetaDataFile=config["modelCategoryFile"],
         CachedFile=cachefile,
         RobotRadius=robotRadius,
         SetTarget=False,
-        ApproximateMovableMap=True)
-    return house
+        ApproximateMovableMap=True,
+    )
 
 
 def get_house_dir(houseID):
@@ -84,7 +83,7 @@ def gen_rand_house(cfg):
     for houseID in all_house_ids:
         house_dir = get_house_dir(houseID)
         if os.path.exists(house_dir):
-            print('{} already exists, skipping'.format(house_dir))
+            print(f'{house_dir} already exists, skipping')
             continue
         yield houseID
 
@@ -102,13 +101,13 @@ def render_current_location(env, houseID, room_type, index):
     output_dir = get_house_dir(houseID)
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-        print('Created directory {}'.format(output_dir))
+        print(f'Created directory {output_dir}')
 
     for mode_idx in range(len(RENDER_MODES)):
         render_mode = RENDER_MODES[mode_idx]
         render_name = RENDER_NAMES[mode_idx]
 
-        env.set_render_mode(RENDER_MODES[mode_idx])
+        env.set_render_mode(render_mode)
         img = env.render_cube_map(copy=True)
         if render_mode == RenderMode.DEPTH:
             img = img[:, :, 0]
@@ -118,8 +117,9 @@ def render_current_location(env, houseID, room_type, index):
         else:
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
-        output_filename = '{}-room_{}-loc_{}-render_{}.png'.format(
-            houseID, room_type, index, render_name)
+        output_filename = (
+            f'{houseID}-room_{room_type}-loc_{index}-render_{render_name}.png'
+        )
         cv2.imwrite(os.path.join(output_dir, output_filename), img)
 
 
@@ -151,12 +151,11 @@ def house_loader(house_gen, cfg, house_queue, gen_lock):
         try:
             house = create_house(houseID, cfg)
         except Exception as e:
-            print('!! Error loading house {}: {}'.format(houseID, e))
+            print(f'!! Error loading house {houseID}: {e}')
             continue
 
         house_queue.put((houseID, house))
-        print('Put house {} in queue, total: {}'.format(houseID,
-                                                        house_queue.qsize()))
+        print(f'Put house {houseID} in queue, total: {house_queue.qsize()}')
 
 
 def house_renderer(cfg, house_queue, progress_queue):
@@ -170,15 +169,14 @@ def house_renderer(cfg, house_queue, progress_queue):
         for room in valid_rooms:
             for _i in range(SAMPLES_PER_ROOM):
                 if not reset_random(env, house, room):
-                    print('Unable to sample location for house {}'.format(
-                        houseID))
+                    print(f'Unable to sample location for house {houseID}')
                     break
                 render_current_location(env, houseID, room['id'], loc_idx)
                 loc_idx += 1
 
         house_queue.task_done()
         progress_queue.put(1)
-        print('Rendered house {}'.format(houseID))
+        print(f'Rendered house {houseID}')
 
 
 def progress_tracker(total, progress_queue):

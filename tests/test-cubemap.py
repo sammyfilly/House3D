@@ -19,18 +19,24 @@ ROBOT_RAD = 3.0
 MODES = [RenderMode.RGB, RenderMode.SEMANTIC, RenderMode.INSTANCE]
 
 def create_house(houseID, config, robotRadius=0.1):
-    print('Loading house {}'.format(houseID))
+    print(f'Loading house {houseID}')
     objFile = os.path.join(config['prefix'], houseID, 'house.obj')
     jsonFile = os.path.join(config['prefix'], houseID, 'house.json')
-    assert (os.path.isfile(objFile) and os.path.isfile(jsonFile)), '[Environment] house objects not found! objFile=<{}>'.format(objFile)
+    assert os.path.isfile(objFile) and os.path.isfile(
+        jsonFile
+    ), f'[Environment] house objects not found! objFile=<{objFile}>'
     cachefile = os.path.join(config['prefix'], houseID, 'cachedmap1k.pkl')
     if not os.path.isfile(cachefile):
         cachefile = None
 
-    house = House(jsonFile, objFile, config["modelCategoryFile"],
-                  CachedFile=cachefile, GenRoomTypeMap=True,
-                  RobotRadius=robotRadius)
-    return house
+    return House(
+        jsonFile,
+        objFile,
+        config["modelCategoryFile"],
+        CachedFile=cachefile,
+        GenRoomTypeMap=True,
+        RobotRadius=robotRadius,
+    )
 
 def get_rand_house(cfg):
     house = None
@@ -38,7 +44,7 @@ def get_rand_house(cfg):
     while house is None or not house.hasRoomType(ROOM_TYPE):
         houseID = np.random.choice(os.listdir(cfg['prefix']))
         house = create_house(houseID, cfg, robotRadius=3.0)
-        print('Room types available: {}'.format(house.all_roomTypes))
+        print(f'Room types available: {house.all_roomTypes}')
     return (houseID, house)
 
 
@@ -60,7 +66,7 @@ if __name__ == '__main__':
     cam = api.getCamera()
     mode_idx = 0
 
-    for t in tqdm.trange(1000):
+    for _ in tqdm.trange(1000):
         reset_random(env, house)
         mat = cv2.cvtColor(env.render_cube_map(), cv2.COLOR_BGR2RGB)
         cv2.imshow("aaa", mat)
@@ -74,7 +80,7 @@ if __name__ == '__main__':
                 cam.yaw += 5
                 cam.updateDirection()
             elif key == ord('s'):
-                cv2.imwrite("{}_mode{}.png".format(houseID, mode_idx), mat)
+                cv2.imwrite(f"{houseID}_mode{mode_idx}.png", mat)
             elif key == ord('i'):
                 mode_idx = (mode_idx + 1) % len(MODES)
                 env.set_render_mode(MODES[mode_idx])

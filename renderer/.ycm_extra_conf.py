@@ -54,7 +54,7 @@ if sys.platform == 'linux':
     pkg_libs = ['egl', 'gl', 'glew', 'glfw3']
 else:
     pkg_libs = ['glew', 'glfw3']
-cmd = 'pkg-config --cflags {}'.format(' '.join(pkg_libs))
+cmd = f"pkg-config --cflags {' '.join(pkg_libs)}"
 flags.extend(subprocess.getoutput(cmd).strip().split(' '))
 
 cmd = 'python-config --cflags'

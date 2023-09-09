@@ -49,15 +49,15 @@ if __name__ == '__main__':
                 print("Instance ID in the center: ", center_instance)
             cv2.imshow("window", mat)
             key = cv2.waitKey(0)
-            if key == 27 or key == ord('q'): #esc
+            if key in [27, ord('q')]: #esc
                 break
             elif key == ord('w'):
                 cam.pos += cam.front * 0.5
             elif key == ord('s'):
                 cam.pos -= cam.front * 0.5
-            elif key == ord('a') or key == 81:
+            elif key in [ord('a'), 81]:
                 cam.pos -= cam.right * 0.5
-            elif key == ord('d') or key == 83:
+            elif key in [ord('d'), 83]:
                 cam.pos += cam.right * 0.5
             elif key == ord('h'):
                 cam.yaw -= 5
@@ -74,6 +74,6 @@ if __name__ == '__main__':
             else:
                 print("Unknown key:", key)
         else:
-            cv2.imwrite("mode={}.png".format(t), mat)
+            cv2.imwrite(f"mode={t}.png", mat)
             if t == len(modes) - 1:
                 break

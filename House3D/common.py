@@ -25,14 +25,14 @@ def load_config(filename):
 
     required_files = ["prefix", "modelCategoryFile", "colorFile"]
     for f in required_files:
-        assert f in config, 'Invalid config! key <{}> is missing!'.format(f)
+        assert f in config, f'Invalid config! key <{f}> is missing!'
         assert os.path.exists(
-            config[f]), 'Invalid config! path <{}> not exists!'.format(
-                config[f])
+            config[f]
+        ), f'Invalid config! path <{config[f]}> not exists!'
         if ('File' in f):
             assert os.path.isfile(
-                config[f]), 'Invalid config! <{}> is not a valid file!'.format(
-                    config[f])
+                config[f]
+            ), f'Invalid config! <{config[f]}> is not a valid file!'
 
     return config
 
@@ -42,18 +42,17 @@ def create_default_config(prefix, colormap='coarse'):
     assert colormap in ['coarse', 'fine']
 
     metadir = os.path.join(os.path.dirname(__file__), 'metadata')
-    ret = {
-        'colorFile':
-        os.path.join(metadir, 'colormap_coarse.csv'
-                     if colormap == 'coarse' else 'colormap_fine.csv'),
-        'roomTargetFile':
-        os.path.join(metadir, 'room_target_object_map.csv'),
-        'modelCategoryFile':
-        os.path.join(metadir, 'ModelCategoryMapping.csv'),
-        'prefix':
-        prefix
+    return {
+        'colorFile': os.path.join(
+            metadir,
+            'colormap_coarse.csv'
+            if colormap == 'coarse'
+            else 'colormap_fine.csv',
+        ),
+        'roomTargetFile': os.path.join(metadir, 'room_target_object_map.csv'),
+        'modelCategoryFile': os.path.join(metadir, 'ModelCategoryMapping.csv'),
+        'prefix': prefix,
     }
-    return ret
 
 
 def detect_nvidia_devices():
@@ -69,7 +68,7 @@ def detect_nvidia_devices():
     assert sys.platform.startswith('linux')
     ret = []
     for k in itertools.count():
-        dev = '/dev/nvidia{}'.format(k)
+        dev = f'/dev/nvidia{k}'
         if os.path.exists(dev):
             try:
                 f = open(dev)

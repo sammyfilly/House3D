@@ -29,14 +29,20 @@ def _vec_to_array(pos):
 def create_house(houseID, config, cachefile=None):
     objFile = os.path.join(config['prefix'], houseID, 'house.obj')
     jsonFile = os.path.join(config['prefix'], houseID, 'house.json')
-    assert (os.path.isfile(objFile) and os.path.isfile(jsonFile)), '[Environment] house objects not found! objFile=<{}>'.format(objFile)
+    assert os.path.isfile(objFile) and os.path.isfile(
+        jsonFile
+    ), f'[Environment] house objects not found! objFile=<{objFile}>'
     if cachefile is None:
         cachefile = os.path.join(config['prefix'], houseID, 'cachedmap1k.pkl')
     if not os.path.isfile(cachefile):
         cachefile = None
-    house = House(jsonFile, objFile, config["modelCategoryFile"],
-                  CachedFile=cachefile, GenRoomTypeMap=True)
-    return house
+    return House(
+        jsonFile,
+        objFile,
+        config["modelCategoryFile"],
+        CachedFile=cachefile,
+        GenRoomTypeMap=True,
+    )
 
 def local_create_house(h, config):
     if not isinstance(h, House):
@@ -108,12 +114,11 @@ class Environment():
         """
         if mode is None:
             return np.array(self.api.render(), copy=copy)
-        else:
-            backup = self.api_mode
-            self.set_render_mode(mode)
-            ret = np.array(self.api.render(), copy=copy)
-            self.set_render_mode(backup)
-            return ret
+        backup = self.api_mode
+        self.set_render_mode(mode)
+        ret = np.array(self.api.render(), copy=copy)
+        self.set_render_mode(backup)
+        return ret
 
 
     def render_cube_map(self, mode=None, copy=False):
@@ -126,12 +131,11 @@ class Environment():
         """
         if mode is None:
             return np.array(self.api.renderCubeMap(), copy=copy)
-        else:
-            backup = self.api_mode
-            self.set_render_mode(mode)
-            ret = np.array(self.api.renderCubeMap(), copy=copy)
-            self.set_render_mode(backup)
-            return ret
+        backup = self.api_mode
+        self.set_render_mode(mode)
+        ret = np.array(self.api.renderCubeMap(), copy=copy)
+        self.set_render_mode(backup)
+        return ret
 
 
     @property
@@ -281,23 +285,16 @@ class Environment():
         if renderSegment:
             self.api.setMode(RenderMode.SEMANTIC)
             segment = np.array(self.api.render(), copy=False)
-            if img is not None:
-                img = np.concatenate([img, segment], axis=1)
-            else:
-                img = segment
+            img = np.concatenate([img, segment], axis=1) if img is not None else segment
         if renderMapLoc is not None:
             assert len(renderMapLoc) == 2, 'renderMapLoc must be a tuple of reals, the location of the robot'
             locMap = self.gen_2dmap(x=renderMapLoc[0], y=renderMapLoc[1])
-            if img is not None:
-                img = np.concatenate([img, locMap], axis=1)
-            else:
-                img = locMap
+            img = np.concatenate([img, locMap], axis=1) if img is not None else locMap
         if storeImage is not None:
             with open(storeImage, 'wb') as f:
                 pickle.dump(img, f)
-        else:
-            if display:
-                self.viewer.imshow(img)
+        elif display:
+            self.viewer.imshow(img)
         return img
 
     def debug_render(self):
@@ -325,22 +322,22 @@ class Environment():
         Returns:
             bool - if False, quit
         """
-        if key == 27 or key == ord('q'): #esc
+        if key in [27, ord('q')]: #esc
             return False
         elif key == ord('w'):
             self.move_forward(0.1 * scale)
         elif key == ord('s'):
             self.move_forward(-0.1 * scale)
-        elif key == ord('a') or key == 81:
+        elif key in [ord('a'), 81]:
             self.move_forward(0, -0.1 * scale)
-        elif key == ord('d') or key == 83:
+        elif key in [ord('d'), 83]:
             self.move_forward(0, 0.1 * scale)
         elif key == ord('h'):
             self.rotate(-2 * scale)
         elif key == ord('l'):
             self.rotate(2 * scale)
         else:
-            logging.warning("Unknown key: {}".format(key))
+            logging.warning(f"Unknown key: {key}")
         return True
 
 
