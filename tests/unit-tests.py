@@ -26,9 +26,9 @@ def depth_of_inverse_depth(inverse_depth):
 def create_house(houseID, config):
     obj_file = os.path.join(config['prefix'], houseID, 'house.obj')
     json_file = os.path.join(config['prefix'], houseID, 'house.json')
-    assert (
-        os.path.isfile(obj_file) and os.path.isfile(json_file)
-    ), '[Environment] house objects not found! obj_file=<{}>'.format(obj_file)
+    assert os.path.isfile(obj_file) and os.path.isfile(
+        json_file
+    ), f'[Environment] house objects not found! obj_file=<{obj_file}>'
     cache_file = os.path.join(config['prefix'], houseID, 'cachedmap1k.pkl')
     if not os.path.isfile(cache_file):
         cache_file = None

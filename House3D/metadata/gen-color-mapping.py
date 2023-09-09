@@ -48,5 +48,5 @@ if __name__ == '__main__':
     with open(args.output, 'w') as f:
         f.write("name,r,g,b\n")
         for klass, color in zip(classes, colors):
-            f.write("{},{},{},{}\n".format(klass, color[0], color[1], color[2]))
+            f.write(f"{klass},{color[0]},{color[1]},{color[2]}\n")
 
